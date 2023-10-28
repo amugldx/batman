@@ -10,3 +10,121 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model Batman {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name     String?
+  email    String  @unique
+  passHash String
+  rtHash   String?
+  baseName String?
+  city     String?
+
+  officers     Officer[]
+  house        House[]
+  ShoppingList ShoppingList[] @relation("DeliveredBy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("batmans")
+}
+
+model Officer {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name     String?
+  email    String  @unique
+  passHash String
+  rtHash   String?
+  baseName String?
+  city     String?
+
+  batmans      Batman[]
+  house        House?
+  ShoppingList ShoppingList[] @relation("DeliveredTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("officers")
+}
+
+model House {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  houseType   HouseType
+  houseNumber Int
+  blockName   String?
+
+  Batman    Batman? @relation(fields: [batmanId], references: [id])
+  batmanId  String? @db.Uuid
+  Officer   Officer @relation(fields: [officerId], references: [id])
+  officerId String  @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("houses")
+}
+
+model ShoppingList {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  items       Item[]
+  deliveredAt DateTime @db.Date
+  daytime     Daytime
+
+  deliveredBy Batman  @relation("DeliveredBy", fields: [batmanId], references: [id])
+  batmanId    String
+  deliveredTo Officer @relation("DeliveredTo", fields: [officerId], references: [id])
+  officerId   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shppingLists")
+}
+
+model Item {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name     String
+  price    Int
+  quantity Int
+  unit     Units
+
+  ShoppingList   ShoppingList? @relation(fields: [shoppingListId], references: [id])
+  shoppingListId String?       @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("items")
+}
+
+enum HouseType {
+  banglow
+  block
+}
+
+enum Units {
+  tonne
+  dozen
+  kilogram
+  gram
+  milligram
+  pound
+  ounce
+  centimeter
+  meter
+  millimetre
+  inch
+  foot
+}
+
+enum Daytime {
+  morning
+  evening
+}
