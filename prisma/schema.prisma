@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,15 +12,17 @@ model Batman {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   name     String?
-  email    String  @unique
+  username String  @unique
   passHash String
   rtHash   String?
   baseName String?
   city     String?
 
-  officers     Officer[]
-  house        House[]
-  ShoppingList ShoppingList[] @relation("DeliveredBy")
+  officers                  Officer[]
+  FriendRequestsFromBatman  FriendRequestsFromBatman[]
+  FriendRequestsFromOfficer FriendRequestsFromOfficer[]
+  house                     House[]
+  ShoppingList              ShoppingList[]              @relation("DeliveredBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,24 +30,56 @@ model Batman {
   @@map("batmans")
 }
 
+model FriendRequestsFromBatman {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  status    FriendRequestStatus
+  sender    Batman?             @relation(fields: [batmanId], references: [id], onDelete: Cascade)
+  reciver   Officer?            @relation(fields: [officerId], references: [id], onDelete: Cascade)
+  batmanId  String?             @db.Uuid
+  officerId String?             @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("friendRequestsFromBatman")
+}
+
 model Officer {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   name     String?
-  email    String  @unique
+  username String  @unique
   passHash String
   rtHash   String?
   baseName String?
   city     String?
 
-  batmans      Batman[]
-  house        House?
-  ShoppingList ShoppingList[] @relation("DeliveredTo")
+  batmans                   Batman[]
+  FriendRequestsFromBatman  FriendRequestsFromBatman[]
+  FriendRequestsFromOfficer FriendRequestsFromOfficer[]
+  house                     House?
+  ShoppingList              ShoppingList[]              @relation("DeliveredTo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("officers")
+}
+
+model FriendRequestsFromOfficer {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  status    FriendRequestStatus
+  sender    Officer?            @relation(fields: [officerId], references: [id], onDelete: Cascade)
+  reciver   Batman?             @relation(fields: [batmanId], references: [id], onDelete: Cascade)
+  officerId String?             @db.Uuid
+  batmanId  String?             @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("friendRequestsFromOfficer")
 }
 
 model House {
@@ -58,9 +89,9 @@ model House {
   houseNumber Int
   blockName   String?
 
-  Batman    Batman? @relation(fields: [batmanId], references: [id])
+  Batman    Batman? @relation(fields: [batmanId], references: [id], onDelete: Cascade)
   batmanId  String? @db.Uuid
-  Officer   Officer @relation(fields: [officerId], references: [id])
+  Officer   Officer @relation(fields: [officerId], references: [id], onDelete: Cascade)
   officerId String  @unique
 
   createdAt DateTime @default(now())
@@ -76,9 +107,9 @@ model ShoppingList {
   deliveredAt DateTime @db.Date
   daytime     Daytime
 
-  deliveredBy Batman  @relation("DeliveredBy", fields: [batmanId], references: [id])
+  deliveredBy Batman  @relation("DeliveredBy", fields: [batmanId], references: [id], onDelete: Cascade)
   batmanId    String
-  deliveredTo Officer @relation("DeliveredTo", fields: [officerId], references: [id])
+  deliveredTo Officer @relation("DeliveredTo", fields: [officerId], references: [id], onDelete: Cascade)
   officerId   String
 
   createdAt DateTime @default(now())
@@ -95,7 +126,7 @@ model Item {
   quantity Int
   unit     Units
 
-  ShoppingList   ShoppingList? @relation(fields: [shoppingListId], references: [id])
+  ShoppingList   ShoppingList? @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
   shoppingListId String?       @db.Uuid
 
   createdAt DateTime @default(now())
@@ -104,12 +135,19 @@ model Item {
   @@map("items")
 }
 
+enum FriendRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
 enum HouseType {
   banglow
   block
 }
 
 enum Units {
+  none
   tonne
   dozen
   kilogram
