@@ -20,6 +20,7 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "@nuxt/image": "^1.0.0",
     "@prisma/client": "^5.5.2",
     "class-variance-authority": "^0.7.0",
     "tailwind-merge": "^2.0.0"
