@@ -8,5 +8,12 @@ export default defineNuxtConfig({
 			autoprefixer: {},
 		},
 	},
-	modules: ['@nuxt/image', 'nuxt-icon'],
+	modules: ['@nuxt/image', 'nuxt-icon', '@vueuse/nuxt'],
+	vite: {
+		vue: {
+			script: {
+				defineModel: true,
+			},
+		},
+	},
 });
