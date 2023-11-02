@@ -106,6 +106,7 @@ model ShoppingList {
   items       Item[]
   deliveredAt DateTime @db.Date
   daytime     Daytime
+  completed   Boolean
 
   deliveredBy Batman  @relation("DeliveredBy", fields: [batmanId], references: [id], onDelete: Cascade)
   batmanId    String
